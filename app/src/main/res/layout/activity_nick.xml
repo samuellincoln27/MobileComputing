@@ -41,8 +41,20 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Find a friend"
+        android:text="Find a Friend"
         android:id="@+id/findfriend"
+        android:layout_gravity="center_horizontal"
+        android:textSize="25dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/buttonshape"
+        android:width="200dp"
+        android:height="100dp" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Password"
+        android:id="@+id/changePassword"
         android:layout_gravity="center_horizontal"
         android:textSize="25dp"
         android:layout_marginTop="20dp"

@@ -7,8 +7,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
@@ -102,13 +100,22 @@ public class Nick extends Activity {
             }
         });
 
+        Button changePassword = (Button)findViewById(R.id.changePassword);
+        changePassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getApplicationContext(),ChangePassword.class);
+                startActivity(i);
+            }
+        });
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.nick, menu);
-        return true;
+        // getMenuInflater().inflate(R.menu.add_friend, menu);
+        return false;
     }
 
     @Override
