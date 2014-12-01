@@ -92,13 +92,10 @@ public class Nick extends Activity {
                 Intent i = new Intent(getApplicationContext(),ChangePassword.class);
                 i.putExtra("userNick", userNick);
                 startActivity(i);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+                finish();
             }
         });
-    }
-
-    @Override
-    public void onBackPressed(){
-
     }
 
     public void processCapacityResult() {
@@ -126,6 +123,8 @@ public class Nick extends Activity {
             i.putExtras(b);
             i.putExtra("bundle",  libListString);
             startActivity(i);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
         }
     }
 
@@ -155,6 +154,8 @@ public class Nick extends Activity {
             i.putExtras(b);
             i.putExtra("bundle",  friendListString);
             startActivity(i);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
         }
     }
 

@@ -87,6 +87,9 @@ public class Login extends Activity {
                 // TODO Auto-generated method stub
                 Intent i = new Intent(getApplicationContext(),Register.class);
                 startActivity(i);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+                finish();
+
             }
         });
 
@@ -102,6 +105,8 @@ public class Login extends Activity {
             Intent i = new Intent(getApplicationContext(),Nick.class);
             i.putExtra("userNick",userNick);
             startActivity(i);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+            finish();
         }
         else {
             System.out.println("Login failed!");

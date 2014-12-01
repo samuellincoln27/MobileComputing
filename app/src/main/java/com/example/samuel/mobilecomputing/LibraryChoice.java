@@ -83,6 +83,8 @@ public class LibraryChoice extends Activity {
             i.putExtra("libName", libName);
             i.putExtra("capacities", capacities);
             startActivity(i);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
 
     }
 

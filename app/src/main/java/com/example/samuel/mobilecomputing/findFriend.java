@@ -78,6 +78,8 @@ public class findFriend extends Activity {
                 Intent i = new Intent(getApplicationContext(), AddFriend.class);
                 i.putExtra("userNick", userNick);
                 startActivity(i);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
             }
         });
     }
@@ -112,6 +114,8 @@ public class findFriend extends Activity {
         i.putExtra("floor", floor);
         i.putExtra("lastSeen", timestamp);
         startActivity(i);
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
     }
 
     class ExecuteFriendLocRequest extends AsyncTask<Void,Void ,Void> {
@@ -137,9 +141,9 @@ public class findFriend extends Activity {
                 HttpResponse response = (HttpResponse) httpClient.execute(httpGet);
                 String mac = EntityUtils.toString(response.getEntity());
                 JSONObject jsonResult = new JSONObject(mac);
-         //       friendMac = jsonResult.getString("mac");
+                friendMac = jsonResult.getString("mac");
                 System.out.println("***************MAC ADDRESS recevied : " + friendMac);
-                friendMac = "00:26:5E:07:2D:33";
+                //friendMac = "00:26:5E:07:2D:33";
                 String locURL = ServerAdd.SERVER_URL + "fetch/location/" + friendMac;
                 httpGet.setURI(new URI(locURL));
 

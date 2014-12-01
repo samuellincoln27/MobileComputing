@@ -141,6 +141,8 @@ public class Register extends Activity {
 
         Intent i = new Intent(getApplicationContext(),Login.class);
         startActivity(i);
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+        finish();
     }
 
     public boolean validateEmail(String email) {

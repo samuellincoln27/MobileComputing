@@ -50,7 +50,7 @@
         android:layout_alignParentEnd="true"
         android:width="200dp"
         android:background="@drawable/textlines"
-        android:layout_weight="1"
+        android:layout_weight="0.45"
         android:hint="Email id"
         android:padding="10dp"
         android:height="10dp"

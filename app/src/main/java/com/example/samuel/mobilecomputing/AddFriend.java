@@ -214,6 +214,8 @@ public class AddFriend extends Activity {
             i.putExtras(b);
             i.putExtra("bundle",  friendListString);
             startActivity(i);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
         }
     }
 

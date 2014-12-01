@@ -128,6 +128,8 @@ public class ChangePassword extends Activity {
             Intent i = new Intent(getApplicationContext(),Nick.class);
             i.putExtra("userNick",userNick);
             startActivity(i);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+
         }
         else {
             String errorMsg = "Password could not be changed!";

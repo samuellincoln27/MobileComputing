@@ -9,6 +9,7 @@ import android.widget.TextView;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 
 public class FriendDetails extends Activity {
@@ -45,10 +46,13 @@ public class FriendDetails extends Activity {
         TextView Floor = (TextView)findViewById(R.id.Floor);
         TextView LastSeen = (TextView)findViewById(R.id.LastSeen);
         Date s = null;
+        SimpleDateFormat s1 = null;
         SimpleDateFormat sdf = null;
         try {
-            s = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(lastSeen);
+            s1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            s = s1.parse(lastSeen);
            sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+            sdf.setTimeZone(TimeZone.getTimeZone("EST"));
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -61,8 +65,8 @@ public class FriendDetails extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.friend_details, menu);
-        return true;
+       // getMenuInflater().inflate(R.menu.friend_details, menu);
+        return false;
     }
 
     @Override

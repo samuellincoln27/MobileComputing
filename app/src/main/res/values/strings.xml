@@ -10,7 +10,7 @@
     <string name="title_activity_lib_info">Library Information</string>
     <string name="title_activity_register">Register User</string>
     <string name="title_activity_add_friend">Add A Friend</string>
-    <string name="title_activity_change_password">ChangePassword</string>
-    <string name="title_activity_friend_details">FriendDetails</string>
+    <string name="title_activity_change_password">Change Password</string>
+    <string name="title_activity_friend_details">Friend Details</string>
 
 </resources>
