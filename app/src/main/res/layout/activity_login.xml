@@ -28,7 +28,7 @@
     <EditText
         android:layout_width="257dp"
         android:layout_height="wrap_content"
-        android:id="@+id/user"
+        android:id="@+id/newPassword2"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
@@ -36,7 +36,10 @@
         android:background="@drawable/textlines"
         android:layout_weight="0.05"
         android:hint="Username"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:maxLines="1"
+        android:lines="1"
+        android:singleLine="true" />
 
 
     <EditText
@@ -48,11 +51,14 @@
         android:background="@drawable/textlines"
         android:layout_alignTop="@+id/PassLabel"
         android:layout_toRightOf="@+id/PassLabel"
-        android:layout_alignRight="@+id/user"
-        android:layout_alignEnd="@+id/user"
+        android:layout_alignRight="@+id/newPassword2"
+        android:layout_alignEnd="@+id/newPassword2"
         android:layout_weight="0.07"
         android:hint="Password"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:maxLines="1"
+        android:lines="1"
+        android:singleLine="true" />
 
     <LinearLayout
         android:orientation="horizontal"

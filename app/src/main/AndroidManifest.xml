@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.samuel.mobilecomputing" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -49,7 +53,13 @@
         </activity>
         <activity
             android:name=".ChangePassword"
-            android:label="@string/title_activity_change_password" >
+            android:label="@string/title_activity_change_password"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".FriendDetails"
+            android:label="@string/title_activity_friend_details"
+            android:screenOrientation="portrait" >
         </activity>
     </application>
 

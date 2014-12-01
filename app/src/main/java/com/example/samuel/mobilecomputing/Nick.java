@@ -2,21 +2,33 @@ package com.example.samuel.mobilecomputing;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
+import android.widget.TextView;
 
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
 
 public class Nick extends Activity {
+
+    JSONArray libraryList;
+    JSONArray friendList;
+    String userNick;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,102 +39,128 @@ public class Nick extends Activity {
     protected void onResume(){
         super.onResume();
         Button capacity = (Button)findViewById(R.id.capacity_view);
+        Button friendFinder = (Button)findViewById(R.id.findfriend);
+        Button changePassword = (Button)findViewById(R.id.changePassword);
+        TextView nick = (TextView)(findViewById(R.id.nick));
+
+        Bundle extras = getIntent().getExtras();
+        if (extras == null) {
+            return;
+        }
+        userNick = extras.getString("userNick");
+        nick.setText("Hello "+userNick+" ,");
 
         capacity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                JSONObject json = new JSONObject();
-                Bundle extras = getIntent().getExtras();
-                if (extras == null) {
-                    return;
-                }
-                String username = extras.getString("USERID");
+            try{
 
-                try {
-                    json.put("username", username);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                String concatLibNames = "";
-
-                try{
-                    String libNames =(String) libCapacityReq(json);
-                }
-                catch(Exception e) {
-                    System.out.println("****exception caught for login...! + -> " + e.toString());
-                }
-                // TODO Auto-generated method stub
-                Intent i = new Intent(getApplicationContext(),LibraryChoice.class);
-                i.putExtra("USERID", username);
-                i.putExtra("LibNames",concatLibNames);
-                startActivity(i);
+                String url = ServerAdd.SERVER_URL + "viewCapacity";
+                //String url = "http://192.168.0.23:8190/viewCapacity";
+                ExecuteCapacityRequest ecr = new ExecuteCapacityRequest(url);
+                ecr.execute();
+            }
+            catch(Exception e) {
+                Toast.makeText(getApplicationContext(), "Cannot load Library List!", Toast.LENGTH_LONG).show();
+                System.out.println("**** exception caught for viewCapacity...! + -> " + e.toString());
+            }
             }
         });
-
-        Button friendFinder = (Button)findViewById(R.id.findfriend);
 
         friendFinder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Bundle extras = getIntent().getExtras();
-                if (extras == null) {
-                    return;
+                try{
+                    String url = ServerAdd.SERVER_URL + "fetch/" + userNick;
+                    ExecuteFindFriendRequest effr = new ExecuteFindFriendRequest (url);
+                    effr.execute();
                 }
-                String username = extras.getString("USERID");
+                catch(Exception e) {
+                    String errorMsg = "Friend List could not be loaded!";
+                    Toast.makeText(getApplicationContext(), errorMsg, Toast.LENGTH_LONG).show();
+                    System.out.println("**** exception caught for findFriend...! + -> " + e.toString());
+                }
+            }
+        });
 
-                // TODO Auto-generated method stub
-                JSONObject json = new JSONObject();
+        changePassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                Intent i = new Intent(getApplicationContext(),ChangePassword.class);
+                i.putExtra("userNick", userNick);
+                startActivity(i);
+            }
+        });
+    }
+
+    public void processCapacityResult() {
+
+        if(libraryList == null){
+            System.out.println("Cannot load Library List!");
+            Toast.makeText(getApplicationContext(), "Cannot load Library List!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        else {
+            Intent i = new Intent(getApplicationContext(),LibraryChoice.class);
+            i.putExtra("userNick", userNick);
+
+            String[] libListString = new String[libraryList.length()];
+            for(int ind = 0; ind < libraryList.length(); ind++) {
                 try {
-                    json.put("username", username);
-
+                    libListString[ind] = (String)libraryList.get(ind);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-               String friendList = "";
-
-                try{
-                    friendList =(String) findFriendReq(json);
-                }
-                catch(Exception e) {
-                    System.out.println("****exception caught for libraries...! + -> " + e.toString());
-                }
-
-                // TODO Auto-generated method stub
-                Intent i = new Intent(getApplicationContext(),findFriend.class);
-                i.putExtra("Friends",friendList);
-                startActivity(i);
             }
-        });
+            Bundle b = new Bundle();
+            b.putStringArray("libList", libListString);
 
-        Button changePassword = (Button)findViewById(R.id.changePassword);
-        changePassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(getApplicationContext(),ChangePassword.class);
-                startActivity(i);
+            i.putExtras(b);
+            i.putExtra("bundle",  libListString);
+            startActivity(i);
+        }
+    }
+
+    public void processFindFriendResult() {
+
+        if(friendList == null){
+            String errorMsg = "Friend List could not be loaded!";
+            System.out.println(errorMsg);
+            Toast.makeText(getApplicationContext(), errorMsg, Toast.LENGTH_LONG).show();
+            return;
+        }
+        else {
+            Intent i = new Intent(getApplicationContext(),findFriend.class);
+            i.putExtra("userNick", userNick);
+
+            String[] friendListString = new String[friendList.length()];
+            for(int ind = 0; ind < friendList.length(); ind++) {
+                try {
+                    friendListString[ind] = (String)friendList.get(ind);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-        });
+            Bundle b = new Bundle();
+            b.putStringArray("friendList", friendListString);
 
+            i.putExtras(b);
+            i.putExtra("bundle",  friendListString);
+            startActivity(i);
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        // getMenuInflater().inflate(R.menu.add_friend, menu);
+        //getMenuInflater().inflate(R.menu.nick, menu);
         return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
@@ -130,65 +168,91 @@ public class Nick extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public String findFriendReq(JSONObject json) throws Exception {
-        //instantiates httpclient to make request
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+    class ExecuteCapacityRequest extends AsyncTask<Void,Void ,Void> {
 
-        //String url = "http://localhost:8190/register";
-        String url = "http://10.0.2.2:8190/getFriendList";
-        //url with the post data
-        HttpPost httpPost = new HttpPost(url);
+        public String url;
 
-        //passes the results to a string builder/entity
-        StringEntity se = new StringEntity(json.toString());
+        public ExecuteCapacityRequest(String urlStr) {
+            url = urlStr;
+        }
 
-        //sets the post request as the resulting string
-        httpPost.setEntity(se);
-        //sets a request header so the page receiving the request
-        //will know what to do with it
-        httpPost.setHeader("Accept", "text/plain");
-        httpPost.setHeader("Content-type", "application/json");
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try{
 
-        //Handles what is returned from the page
-        ResponseHandler responseHandler = new BasicResponseHandler();
-        System.out.println("********** before executing request ***********");
+                DefaultHttpClient httpClient = new DefaultHttpClient();
+                HttpGet httpGet = new HttpGet();
+                httpGet.setURI(new URI(url));
 
-        JSONObject obj = (JSONObject) httpclient.execute(httpPost, responseHandler);
+                System.out.println("********** before executing viewCapacity request ***********");
 
-        System.out.println("********** received response ***********");
-        String friendList = obj.getString("friendList");
-        return friendList;
+                HttpResponse response = (HttpResponse) httpClient.execute(httpGet);
 
+                BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+                StringBuilder builder = new StringBuilder();
+                for (String line = null; (line = reader.readLine()) != null;) {
+                    builder.append(line).append("\n");
+                }
+                JSONTokener tokener = new JSONTokener(builder.toString());
+                libraryList = new JSONArray(tokener);
+                System.out.print(libraryList.toString());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            System.out.println("********** received viewCapacity response ***********");
+            processCapacityResult();
+        }
     }
 
-    public String libCapacityReq(JSONObject json) throws Exception {
-        //instantiates httpclient to make request
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+    class ExecuteFindFriendRequest extends AsyncTask<Void,Void ,Void> {
 
-        //String url = "http://localhost:8190/register";
-        String url = "http://10.0.2.2:8190/libCapacity";
-        //url with the post data
-        HttpPost httpPost = new HttpPost(url);
+        public String url;
 
-        //passes the results to a string builder/entity
-        StringEntity se = new StringEntity(json.toString());
+        public ExecuteFindFriendRequest(String urlStr) {
+            url = urlStr;
+        }
 
-        //sets the post request as the resulting string
-        httpPost.setEntity(se);
-        //sets a request header so the page receiving the request
-        //will know what to do with it
-        httpPost.setHeader("Accept", "text/plain");
-        httpPost.setHeader("Content-type", "application/json");
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try{
 
-        //Handles what is returned from the page
-        ResponseHandler responseHandler = new BasicResponseHandler();
-        System.out.println("********** before executing request ***********");
+                DefaultHttpClient httpClient = new DefaultHttpClient();
+                HttpGet httpGet = new HttpGet();
+                httpGet.setURI(new URI(url));
 
-        JSONObject obj = (JSONObject) httpclient.execute(httpPost, responseHandler);
+                System.out.println("********** before executing findFriend request ***********");
 
-        System.out.println("********** received response ***********");
-        String libCapacity = obj.getString("libCapacity");
-        return libCapacity;
+                HttpResponse response = (HttpResponse) httpClient.execute(httpGet);
 
+                BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+                StringBuilder builder = new StringBuilder();
+                for (String line = null; (line = reader.readLine()) != null;) {
+                    builder.append(line).append("\n");
+                }
+                JSONTokener tokener = new JSONTokener(builder.toString());
+                friendList = new JSONArray(tokener);
+                System.out.print(friendList.toString());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            System.out.println("********** received findFriend response ***********");
+            processFindFriendResult();
+        }
     }
 }

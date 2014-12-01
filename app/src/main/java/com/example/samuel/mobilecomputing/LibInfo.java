@@ -6,9 +6,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class LibInfo extends Activity {
 
+    String userNick;
+    String libName;
+    JSONObject floorCapacities;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,28 +29,42 @@ public class LibInfo extends Activity {
         if (extras == null) {
             return;
         }
-        String username = extras.getString("USERID");
-        String floorCapacity = extras.getString("floorCapacity");
+        userNick = extras.getString("userNick");
+        libName = extras.getString("libName");
 
-        String[]  friendArray = {"Floor1                                 20 %","Floor2                                 30%","Floor3                                 40%"};
+        TextView lib = (TextView)findViewById(R.id.Lib);
+        lib.setText(libName);
+        String capacities = extras.getString("capacities");
+        try {
+            floorCapacities = new JSONObject(capacities);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, friendArray);
+        String[] floorArray = new String[floorCapacities.length()];
+        for(int ind = 0; ind < floorCapacities.length(); ind++) {
+            String cap = null;
+            int in = ind + 1;
+            try {
+                cap = floorCapacities.getString("floor" + in);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            floorArray[ind] = "Floor " + in +"                        "+ cap;
+        }
+
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, floorArray);
 
         floorlist.setAdapter(arrayAdapter);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        // getMenuInflater().inflate(R.menu.add_friend, menu);
         return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;

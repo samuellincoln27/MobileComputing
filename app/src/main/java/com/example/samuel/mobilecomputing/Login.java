@@ -2,6 +2,7 @@ package com.example.samuel.mobilecomputing;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,20 +11,21 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import org.apache.http.client.ResponseHandler;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 
 public class Login extends Activity {
 
+    String userNick;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,10 +42,11 @@ public class Login extends Activity {
             @Override
             public void onClick(View v) {
 
-                String emailID = ((EditText)findViewById(R.id.user)).getText().toString().trim();
+                String username = ((EditText)findViewById(R.id.newPassword2)).getText().toString().trim();
                 String password = ((EditText)findViewById(R.id.password)).getText().toString().trim();
+                userNick = username;
 
-                if(!validateEmail(emailID)) {
+                if(username.length() == 0) {
                     System.out.println("Please enter a valid username!");
                     Toast.makeText(getApplicationContext(), "Please enter a valid username!", Toast.LENGTH_LONG).show();
                     return;
@@ -58,29 +61,23 @@ public class Login extends Activity {
                 JSONObject json = new JSONObject();
 
                 try {
-                    json.put("username", emailID);
+                    json.put("username", username);
                     json.put("password", password);
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
-                Boolean success = false;
                 try{
-                    success = (Boolean)doLogin(json);
+                    //String url = "http://192.168.0.23:8190/login";
+                    String url = ServerAdd.SERVER_URL + "login";
+                    ExecuteLoginRequest elr = new ExecuteLoginRequest(json, url);
+                    elr.execute();
                 }
                 catch(Exception e) {
-                    System.out.println("****exception caught for login...! + -> " + e.toString());
+                    Toast.makeText(getApplicationContext(), "Login Failed!", Toast.LENGTH_LONG).show();
+                    System.out.println("**** exception caught for Login...! + -> " + e.toString());
                 }
-                // TODO Auto-generated method stub
-                if(success)
-                    System.out.println("Login Successful!");
-                else
-                    System.out.println("Login Failed!");
-
-                Intent i = new Intent(getApplicationContext(),Nick.class);
-                i.putExtra("USERID",emailID);
-                startActivity(i);
             }
         });
 
@@ -95,19 +92,31 @@ public class Login extends Activity {
 
     }
 
+    public void processResult(String loginSuccess) {
+       // loginSuccess = "true";
+        if(loginSuccess.equals("true")) {
+            System.out.println("Login Successful!");
+
+            Toast.makeText(getApplicationContext(), "Login Successful!", Toast.LENGTH_LONG).show();
+
+            Intent i = new Intent(getApplicationContext(),Nick.class);
+            i.putExtra("userNick",userNick);
+            startActivity(i);
+        }
+        else {
+            System.out.println("Login failed!");
+            Toast.makeText(getApplicationContext(), "Login failed!", Toast.LENGTH_LONG).show();
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-       // getMenuInflater().inflate(R.menu.login, menu);
         return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
@@ -115,51 +124,52 @@ public class Login extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public boolean validateEmail(String email) {
+    class ExecuteLoginRequest extends AsyncTask<Void,Void ,Void> {
 
-        if(email.length() == 0)
-            return false;
+        public JSONObject inputJson;
+        public String url;
+        public String loginSuccess;
 
-        Pattern pattern;
-        Matcher matcher;
+        public ExecuteLoginRequest(JSONObject j, String urlStr) {
+            inputJson = j;
+            url = urlStr;
+        }
 
-        String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-                + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try{
 
-        pattern = Pattern.compile(EMAIL_PATTERN);
-        matcher = pattern.matcher(email);
-        return matcher.matches();
+                DefaultHttpClient httpClient = new DefaultHttpClient();
+                HttpPost httpPost = new HttpPost(url);
+                StringEntity se = null;
+
+                try {
+                    se = new StringEntity(inputJson.toString());
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+
+            httpPost.setEntity(se);
+            httpPost.setHeader("Accept", "text/plain");
+            httpPost.setHeader("Content-type", "application/json");
+
+            System.out.println("********** before executing login request ***********");
+
+            HttpResponse js = (HttpResponse) httpClient.execute(httpPost);
+            loginSuccess =  EntityUtils.toString(js.getEntity());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            System.out.println("********** received response ***********");
+            processResult(loginSuccess);
+        }
     }
-
-    public Boolean doLogin (JSONObject json) throws Exception {
-        //instantiates httpclient to make request
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-
-        //String url = "http://localhost:8190/register";
-        String url = "http://10.0.2.2:8190/login";
-        //url with the post data
-        HttpPost httpPost = new HttpPost(url);
-
-        //passes the results to a string builder/entity
-        StringEntity se = new StringEntity(json.toString());
-
-        //sets the post request as the resulting string
-        httpPost.setEntity(se);
-        //sets a request header so the page receiving the request
-        //will know what to do with it
-        httpPost.setHeader("Accept", "text/plain");
-        httpPost.setHeader("Content-type", "application/json");
-
-        //Handles what is returned from the page
-        ResponseHandler responseHandler = new BasicResponseHandler();
-        System.out.println("********** before executing request ***********");
-        Boolean success = (Boolean) httpclient.execute(httpPost, responseHandler);
-        Toast.makeText(getApplicationContext(), "here received response : ", Toast.LENGTH_LONG).show();
-        System.out.println("********** received response ***********");
-        System.out.println(responseHandler.toString());
-        Toast.makeText(getApplicationContext(),"here response printed : " , Toast.LENGTH_LONG).show();
-        System.out.println("**********  response printed ***********");
-        return success;
-    }
-
 }

@@ -2,21 +2,29 @@ package com.example.samuel.mobilecomputing;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.apache.http.util.EntityUtils;
+
+import java.io.IOException;
+import java.net.URI;
 
 public class LibraryChoice extends Activity {
+
+    String userNick;
+    String libName;
+    String capacities;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,59 +35,59 @@ public class LibraryChoice extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        // getMenuInflater().inflate(R.menu.add_friend, menu);
         return false;
     }
     @Override
     protected void onResume(){
         super.onResume();
-        Button marston = (Button)findViewById(R.id.marston);
 
-        marston.setOnClickListener(new View.OnClickListener() {
+        Bundle extras = getIntent().getExtras();
+        if (extras == null) {
+            return;
+        }
+        userNick = extras.getString("userNick");
+        String[] libraryList = extras.getStringArray("libList");
+
+        ListView Liblist = (ListView) findViewById(R.id.LibList);
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, libraryList);
+
+        Liblist.setAdapter(arrayAdapter);
+
+        Liblist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
-            public void onClick(View v) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                Bundle extras = getIntent().getExtras();
-                if (extras == null) {
-                    return;
-                }
-                String username = extras.getString("USERID");
-
-                // TODO Auto-generated method stub
-                JSONObject json = new JSONObject();
-                String libName = "Marston";
-                try {
-                    json.put("username", username);
-                    json.put("libName", libName);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                String floorCapacity = "";
+                libName = (String) adapterView.getAdapter().getItem(i);
 
                 try{
-                    floorCapacity =(String) getFloorCapacity(json);
+
+                    String url = ServerAdd.SERVER_URL + "viewCapacity/" + libName;
+                    //String url = "http://192.168.0.23:8190/viewCapacity/" + libName;
+                    ExecuteFloorRequest efr = new ExecuteFloorRequest(url);
+                    efr.execute();
                 }
                 catch(Exception e) {
-                    System.out.println("****exception caught for libraries...! + -> " + e.toString());
+                    Toast.makeText(getApplicationContext(), "Cannot load capacity List!", Toast.LENGTH_LONG).show();
+                    System.out.println("**** exception caught for viewCapacity "+ libName+" ...! + -> " + e.toString());
                 }
-
-                // TODO Auto-generated method stub
-                Intent i = new Intent(getApplicationContext(),LibInfo.class);
-                i.putExtra("USERID", username);
-                i.putExtra("floorCapacity", floorCapacity);
-                startActivity(i);
             }
         });
     }
 
+
+    public void processFloorResult() {
+
+            Intent i = new Intent(getApplicationContext(),LibInfo.class);
+            i.putExtra("userNick", userNick);
+            i.putExtra("libName", libName);
+            i.putExtra("capacities", capacities);
+            startActivity(i);
+
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
@@ -87,36 +95,40 @@ public class LibraryChoice extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public String getFloorCapacity(JSONObject json) throws Exception {
-        //instantiates httpclient to make request
-        DefaultHttpClient httpclient = new DefaultHttpClient();
+       class ExecuteFloorRequest extends AsyncTask<Void,Void ,Void> {
 
-        //String url = "http://localhost:8190/register";
-        String url = "http://10.0.2.2:8190/getFloorCapacity";
-        //url with the post data
-        HttpPost httpPost = new HttpPost(url);
+        public String url;
 
-        //passes the results to a string builder/entity
-        StringEntity se = new StringEntity(json.toString());
+        public ExecuteFloorRequest(String urlStr) {
+            url = urlStr;
+        }
 
-        //sets the post request as the resulting string
-        httpPost.setEntity(se);
-        //sets a request header so the page receiving the request
-        //will know what to do with it
-        httpPost.setHeader("Accept", "text/plain");
-        httpPost.setHeader("Content-type", "application/json");
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
 
-        //Handles what is returned from the page
-        ResponseHandler responseHandler = new BasicResponseHandler();
-        System.out.println("********** before executing request ***********");
+                DefaultHttpClient httpClient = new DefaultHttpClient();
+                HttpGet httpGet = new HttpGet();
+                httpGet.setURI(new URI(url));
 
-        JSONObject obj = (JSONObject) httpclient.execute(httpPost, responseHandler);
+                System.out.println("********** before executing floorCapacity request ***********");
 
-        System.out.println("********** received response ***********");
-        String floorCapacity = obj.getString("floorCapacity");
-        return floorCapacity;
+                HttpResponse response = (HttpResponse) httpClient.execute(httpGet);
+                capacities =  EntityUtils.toString(response.getEntity());
+                System.out.println("Response received as : " + capacities);
+                System.out.println("********** printing result ***********");
 
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            System.out.println("********** received viewCapacity response ***********");
+            processFloorResult();
+        }
     }
 }
-
-
