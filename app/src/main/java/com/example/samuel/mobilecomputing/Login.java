@@ -161,6 +161,7 @@ public class Login extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), "Could not Login!", Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             }
             return null;

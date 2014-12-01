@@ -96,6 +96,11 @@ public class Nick extends Activity {
         });
     }
 
+    @Override
+    public void onBackPressed(){
+
+    }
+
     public void processCapacityResult() {
 
         if(libraryList == null){
@@ -254,5 +259,7 @@ public class Nick extends Activity {
             System.out.println("********** received findFriend response ***********");
             processFindFriendResult();
         }
+
+
     }
 }

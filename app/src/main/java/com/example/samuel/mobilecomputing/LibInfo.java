@@ -50,6 +50,8 @@ public class LibInfo extends Activity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            if(cap.equals("NaN%"))
+                cap = "0 %";
             floorArray[ind] = "Floor " + in +"                        "+ cap;
         }
 
